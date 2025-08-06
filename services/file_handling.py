@@ -7,16 +7,33 @@ logger = logging.getLogger(__name__)
 # Функция, возвращающая строку с текстом страницы и её размер
 def _get_part_text(text: str, start: int, size: int) -> tuple[str, int]:
     
-    # ...
-    
+    text = text[start: min(len(text), start + size)]
 
-    return page_text, page_size
+    lst = [',', '.', '!', '?', ':', ';']
+    prev_char = ''
+    while len(text) >= 2:
+        if all([text[-1] in lst, text[-2] in lst]):
+            text = text[:-3]
+        elif text[-1] in lst and text[-2].isalpha() and prev_char.isspace():
+            return text, len(text)
+            break
+        else:
+            prev_char = text[-1]
+            text = text[:-1]
+    return text, len(text)
 
 
 # Функция, формирующая словарь книги
 def prepare_book(path: str, page_size: int = 1050) -> dict[int, str]:
-    book = {}
-
-    # ...
-
-    return book
+    dict = {}
+    counter = 1
+    start = 0
+    size = page_size
+    with open(path, 'r', encoding='utf-8') as file:
+        buff = file.read()
+    while buff:
+        res = _get_part_text(buff, start, size)
+        dict[counter] = res[0].lstrip()
+        buff = buff[res[1]+1:]
+        counter += 1
+    return dict
